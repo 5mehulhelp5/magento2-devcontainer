@@ -6,6 +6,10 @@ services:
       - CONFIG__DEFAULT__CATALOG__SEARCH__OPENSEARCH_SERVER_HOSTNAME=opensearch
       - CONFIG__DEFAULT__CATALOG__SEARCH__ENGINE=opensearch
       - CONFIG__DEFAULT__CATALOG__SEARCH__OPENSEARCH_SERVER_PORT=9200
+      # GitHub Codespaces' port-forwarder rewrites Host to localhost:<port>
+      # and puts the real hostname in X-Forwarded-Host, which Magento doesn't
+      # honor — causing an ERR_TOO_MANY_REDIRECTS loop on canonical redirect.
+      - CONFIG__DEFAULT__WEB__URL__REDIRECT_TO_BASE=0
     networks:
       - magento
     depends_on:
