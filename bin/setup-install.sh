@@ -122,6 +122,14 @@ cat << EOF
     --amqp-user="$RABBITMQ_USER" \\
     --amqp-password="$RABBITMQ_PASSWORD" \\
     --cleanup-database
+
+# Disable canonical base-URL redirect. GitHub Codespaces' port-forwarder
+# rewrites the Host header to "localhost:<port>" and puts the real hostname
+# in X-Forwarded-Host, which Magento doesn't honor for its host check —
+# causing an ERR_TOO_MANY_REDIRECTS loop. Harmless in non-proxied local
+# devcontainers where HTTP_HOST already matches the base URL.
+bin/magento config:set web/url/redirect_to_base 0
+bin/magento cache:flush config
 EOF
 
 echo "" >&2
