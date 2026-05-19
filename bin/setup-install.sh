@@ -49,6 +49,17 @@ REDIS_HOST="${REDIS_HOST:-redis}"
 REDIS_PORT="${REDIS_PORT:-6379}"
 
 BASE_URL="${BASE_URL:-http://localhost:8000/}"
+USE_SECURE="${USE_SECURE:-0}"
+BASE_URL_SECURE="${BASE_URL_SECURE:-$BASE_URL}"
+
+# GitHub Codespaces: forwarded URL is always HTTPS and follows the pattern
+# https://<codespace-name>-<port>.<forwarding-domain>/
+if [ -n "$CODESPACE_NAME" ] && [ -n "$GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN" ]; then
+    BASE_URL="${BASE_URL_OVERRIDE:-https://${CODESPACE_NAME}-8000.${GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN}/}"
+    BASE_URL_SECURE="$BASE_URL"
+    USE_SECURE=1
+fi
+
 BACKEND_FRONTNAME="${BACKEND_FRONTNAME:-admin}"
 ADMIN_USER="${ADMIN_USER:-admin}"
 ADMIN_PASSWORD="${ADMIN_PASSWORD:-admin123}"
@@ -60,8 +71,11 @@ CURRENCY="${CURRENCY:-USD}"
 TIMEZONE="${TIMEZONE:-America/New_York}"
 
 # Setting system permissions
-find var generated vendor pub/static pub/media app/etc -type f -exec chmod g+w {} +
-find var generated vendor pub/static pub/media app/etc -type d -exec chmod g+ws {} +
+# Restrict to files owned by the current user; files owned by other users
+# (e.g. www-data-generated artifacts) already have the correct group-writable
+# permissions and can't be chmod'd without sudo.
+find var generated vendor pub/static pub/media app/etc -type f -user "$(id -u)" -exec chmod g+w {} +
+find var generated vendor pub/static pub/media app/etc -type d -user "$(id -u)" -exec chmod g+ws {} +
 chmod u+x bin/magento
 
 # Build the setup:install command
@@ -75,6 +89,9 @@ cat << EOF
     --db-user="$DB_USER" \\
     --db-password="$DB_PASSWORD" \\
     --base-url="$BASE_URL" \\
+    --base-url-secure="$BASE_URL_SECURE" \\
+    --use-secure="$USE_SECURE" \\
+    --use-secure-admin="$USE_SECURE" \\
     --backend-frontname="$BACKEND_FRONTNAME" \\
     --admin-user="$ADMIN_USER" \\
     --admin-password="$ADMIN_PASSWORD" \\
