@@ -77,6 +77,41 @@ TIMEZONE="${TIMEZONE:-America/New_York}"
 # the project's Magento version couldn't be detected (e.g. pre-install).
 MAGENTO_ROOT="${MAGENTO_ROOT:-.}"
 
+# Wait for sibling docker services to accept TCP connections.
+# `setup:install` has no retry of its own and aborts on the first refused
+# connection, which is a problem when this script is wired as
+# devcontainer.json's postCreateCommand and runs while db / rabbitmq /
+# opensearch are still booting. Caps the wait at
+# WAIT_FOR_SERVICES_TIMEOUT_S (default 120s); if services never come up,
+# falls through and lets setup:install produce the real error.
+tcp_check() {
+    timeout 1 bash -c ">/dev/tcp/$1/$2" 2>/dev/null
+}
+
+wait_for_services() {
+    local wait_timeout="${WAIT_FOR_SERVICES_TIMEOUT_S:-60}"
+    local elapsed=0 sleep_for=2
+    while [ "$elapsed" -lt "$wait_timeout" ]; do
+        local pending=()
+        tcp_check "$DB_HOST" 3306                       || pending+=("db ($DB_HOST:3306)")
+        tcp_check "$RABBITMQ_HOST" "$RABBITMQ_PORT"     || pending+=("rabbitmq ($RABBITMQ_HOST:$RABBITMQ_PORT)")
+        tcp_check "$OPENSEARCH_HOST" "$OPENSEARCH_PORT" || pending+=("opensearch ($OPENSEARCH_HOST:$OPENSEARCH_PORT)")
+        if [ ${#pending[@]} -eq 0 ]; then
+            echo "# All services reachable after ${elapsed}s." >&2
+            return 0
+        fi
+        for svc in "${pending[@]}"; do
+            echo "# Waiting for $svc, trying again in ${sleep_for}s..." >&2
+        done
+        sleep "$sleep_for"
+        elapsed=$((elapsed + sleep_for))
+    done
+    echo "# Services not reachable after ${wait_timeout}s — proceeding anyway." >&2
+    return 1
+}
+
+wait_for_services || true
+
 # Setting system permissions
 # Restrict to files owned by the current user; files owned by other users
 # (e.g. www-data-generated artifacts) already have the correct group-writable
