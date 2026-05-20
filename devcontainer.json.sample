@@ -13,7 +13,6 @@
     8025
   ],
   "initializeCommand": "[ -f .devcontainer/magento2-devcontainer/.gitignore ] || (git submodule update --init --recursive)",
-  "postStartCommand": "bash .devcontainer/magento2-devcontainer/bin/post-start.sh",
   "portsAttributes": {
     "8000": {
       "label": "Magento 2 Storefront (nginx)"
