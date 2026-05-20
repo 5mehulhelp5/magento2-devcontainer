@@ -6,6 +6,22 @@ upstream fastcgi_backend {
   server  ${MAGENTO2_UPSTREAM}:${MAGENTO2_UPSTREAM_PORT};
 }
 
+# Derive proxy-aware host/scheme from X-Forwarded-* if present, otherwise fall
+# back to the actual request values. Consumed by the fastcgi_param overrides in
+# /etc/nginx/fastcgi_params (bind-mounted from .devcontainer/.../nginx/fastcgi_params).
+# When no X-Forwarded-* headers are sent (e.g. a local devcontainer with no
+# fronting proxy), the defaults make these variables identical to the
+# request's own values, so behavior is unchanged. Applies to both server blocks
+# below (HTTP and TLS).
+map $http_x_forwarded_host $proxied_host {
+    default $http_x_forwarded_host;
+    ""      $http_host;
+}
+map $http_x_forwarded_proto $proxied_https {
+    default $https;
+    "https" on;
+}
+
 server {
   listen ${NGINX_PORT};
 
