@@ -50,7 +50,7 @@ REDIS_PORT="${REDIS_PORT:-6379}"
 
 BASE_URL="${BASE_URL:-http://localhost:8000/}"
 USE_SECURE="${USE_SECURE:-0}"
-BASE_URL_SECURE="${BASE_URL_SECURE:-$BASE_URL}"
+BASE_URL_SECURE="${BASE_URL_SECURE:-}"
 
 # GitHub Codespaces: forwarded URL is always HTTPS and follows the pattern
 # https://<codespace-name>-<port>.<forwarding-domain>/
@@ -89,9 +89,19 @@ cat << EOF
     --db-user="$DB_USER" \\
     --db-password="$DB_PASSWORD" \\
     --base-url="$BASE_URL" \\
+EOF
+
+# Magento validates --base-url-secure as https://, so only emit the secure
+# flags when we actually have an HTTPS endpoint (e.g. Codespaces forwarding).
+if [ "$USE_SECURE" = "1" ] && [ -n "$BASE_URL_SECURE" ]; then
+    cat << EOF
     --base-url-secure="$BASE_URL_SECURE" \\
-    --use-secure="$USE_SECURE" \\
-    --use-secure-admin="$USE_SECURE" \\
+    --use-secure=1 \\
+    --use-secure-admin=1 \\
+EOF
+fi
+
+cat << EOF
     --backend-frontname="$BACKEND_FRONTNAME" \\
     --admin-user="$ADMIN_USER" \\
     --admin-password="$ADMIN_PASSWORD" \\
