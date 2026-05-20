@@ -70,15 +70,27 @@ LANGUAGE="${LANGUAGE:-en_US}"
 CURRENCY="${CURRENCY:-USD}"
 TIMEZONE="${TIMEZONE:-America/New_York}"
 
+# Resolve the Magento root for the file ops and the printed install command.
+# `load_project_magento_version` sets MAGENTO_ROOT via find_magento_root, which
+# walks subdirs and supports monorepo layouts (e.g. magento/ alongside a
+# storefront workspace). Honor an explicit env override; fall back to cwd when
+# the project's Magento version couldn't be detected (e.g. pre-install).
+MAGENTO_ROOT="${MAGENTO_ROOT:-.}"
+
 # Setting system permissions
 # Restrict to files owned by the current user; files owned by other users
 # (e.g. www-data-generated artifacts) already have the correct group-writable
 # permissions and can't be chmod'd without sudo.
-find var generated vendor pub/static pub/media app/etc -type f -user "$(id -u)" -exec chmod g+w {} +
-find var generated vendor pub/static pub/media app/etc -type d -user "$(id -u)" -exec chmod g+ws {} +
-chmod u+x bin/magento
+find "$MAGENTO_ROOT/var" "$MAGENTO_ROOT/generated" "$MAGENTO_ROOT/vendor" "$MAGENTO_ROOT/pub/static" "$MAGENTO_ROOT/pub/media" "$MAGENTO_ROOT/app/etc" -type f -user "$(id -u)" -exec chmod g+w {} +
+find "$MAGENTO_ROOT/var" "$MAGENTO_ROOT/generated" "$MAGENTO_ROOT/vendor" "$MAGENTO_ROOT/pub/static" "$MAGENTO_ROOT/pub/media" "$MAGENTO_ROOT/app/etc" -type d -user "$(id -u)" -exec chmod g+ws {} +
+chmod u+x "$MAGENTO_ROOT/bin/magento"
 
-# Build the setup:install command
+# Build the setup:install command. Prepend a `cd` for monorepo layouts so the
+# printed command works regardless of the caller's cwd when piped to bash.
+# When MAGENTO_ROOT is cwd ("."), emit nothing — preserves legacy output.
+if [ "$MAGENTO_ROOT" != "." ]; then
+    echo "cd \"$MAGENTO_ROOT\" && \\"
+fi
 cat << 'EOF'
 bin/magento setup:install \
 EOF
