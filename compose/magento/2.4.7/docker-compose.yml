@@ -13,10 +13,14 @@ services:
     networks:
       - magento
     depends_on:
-      - db
-      - opensearch
-      - rabbitmq
-      - redis
+      db:
+        condition: service_healthy
+      opensearch:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
 
   nginx:
     image: nginx:1.28
@@ -49,6 +53,12 @@ services:
     networks:
       - magento
     command: --max_allowed_packet=256M
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 30s
 
   opensearch:
     image: opensearchproject/opensearch:2.19.1
@@ -72,6 +82,12 @@ services:
       - opensearch_data:/usr/share/opensearch/data
     networks:
       - magento
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:9200/_cluster/health || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 60s
 
   rabbitmq:
     image: rabbitmq:3.13-management
@@ -85,6 +101,12 @@ services:
       - rabbitmq_data:/var/lib/rabbitmq
     networks:
       - magento
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 5s
+      timeout: 10s
+      retries: 20
+      start_period: 30s
 
   redis:
     image: redis:7.2
@@ -95,6 +117,12 @@ services:
     networks:
       - magento
     command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 5s
 
   mailpit:
     image: axllent/mailpit:v1.29.0
