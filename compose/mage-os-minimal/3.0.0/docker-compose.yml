@@ -52,7 +52,7 @@ services:
       - magento
     command: --max_allowed_packet=256M
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1"]
+      test: ["CMD", "healthcheck.sh", "--su-mysql", "--connect"]
       interval: 5s
       timeout: 5s
       retries: 20
