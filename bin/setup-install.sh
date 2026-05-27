@@ -171,7 +171,8 @@ EOF
 fi
 
 cat << 'EOF'
-    --cleanup-database
+    --cleanup-database \
+    --no-interaction
 EOF
 
 echo "" >&2
