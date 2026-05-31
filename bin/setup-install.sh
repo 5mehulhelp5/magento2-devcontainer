@@ -94,6 +94,17 @@ TIMEZONE="${TIMEZONE:-America/New_York}"
 # the project's Magento version couldn't be detected (e.g. pre-install).
 MAGENTO_ROOT="${MAGENTO_ROOT:-.}"
 
+# Bail out cleanly if Magento is already installed. A populated app/etc/env.php
+# means setup:install would wipe the existing configuration, so emit a notice
+# and exit 0 — nothing is printed to stdout, so piping to bash is a safe no-op.
+if [ -f "$MAGENTO_ROOT/app/etc/env.php" ]; then
+    echo "" >&2
+    echo "NOTICE: $MAGENTO_ROOT/app/etc/env.php already exists — Magento appears to be installed." >&2
+    echo "Skipping setup:install. Remove $MAGENTO_ROOT/app/etc/env.php first if you intend to reinstall." >&2
+    echo "" >&2
+    exit 0
+fi
+
 # Setting system permissions
 # Restrict to files owned by the current user; files owned by other users
 # (e.g. www-data-generated artifacts) already have the correct group-writable
