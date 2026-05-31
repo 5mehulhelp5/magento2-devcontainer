@@ -113,6 +113,10 @@ cp "$DEVCONTAINER_FOLDER/docker-compose.shared.yml.sample" "$TARGET_DIR/docker-c
 cp "$DEVCONTAINER_FOLDER/docker-compose.local.yml.sample" "$TARGET_DIR/docker-compose.local.yml"
 echo "services: {}" > "$TARGET_DIR/docker-compose.yml"
 
+## Copy the .gitignore so the per-developer local files (.env,
+## docker-compose.local.yml) that host-bootstrap.sh re-seeds aren't committed.
+cp "$DEVCONTAINER_FOLDER/.gitignore.sample" "$TARGET_DIR/.gitignore"
+
 ## Copy over devcontainer and set the name and compose key.
 ## Every compose key is <distribution>/<version> so a single alternation
 ## covers magento, mage-os, and mage-os-minimal. Uses `#` as the s-delimiter

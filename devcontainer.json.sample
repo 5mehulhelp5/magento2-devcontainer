@@ -12,7 +12,7 @@
     8000,
     8025
   ],
-  "initializeCommand": "[ -f .devcontainer/magento2-devcontainer/.gitignore ] || (git submodule update --init --recursive)",
+  "initializeCommand": "[ -f .devcontainer/magento2-devcontainer/.gitignore ] || git submodule update --init --recursive; .devcontainer/magento2-devcontainer/bin/host-bootstrap.sh",
   "postStartCommand": ".devcontainer/magento2-devcontainer/bin/forward-ports.sh",
   "portsAttributes": {
     "8000": {
