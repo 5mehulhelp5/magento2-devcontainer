@@ -27,6 +27,7 @@
 # ================================================
 
 #  damienwebdev - Damien Retzinger
+#  gray-bot     - Graycore service user (automation)
 
 
 ######################################################################################################
@@ -52,11 +53,11 @@
 #  Automated dependency maintenance
 # ================================================
 #
-# Files below have NO code owner. This lets Dependabot
-# PRs merge with only the approval from the dependabot-auto-merge
-# workflow, since github-actions[bot] is an app and cannot satisfy
-# "Require review from Code Owners".
+# @gray-bot (our service user) co-owns the files below so that the
+# dependabot-auto-merge workflow, which approves as @gray-bot, can
+# satisfy "Require review from Code Owners" on Dependabot PRs.
+# An approval from ANY listed owner satisfies the requirement.
 
-/package.json
-/package-lock.json
-/.github/workflows/
+/package.json @damienwebdev @gray-bot
+/package-lock.json @damienwebdev @gray-bot
+/.github/workflows/ @damienwebdev @gray-bot
