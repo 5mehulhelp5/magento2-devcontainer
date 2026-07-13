@@ -47,3 +47,16 @@
 # ================================================
 
 * @damienwebdev
+
+# ================================================
+#  Automated dependency maintenance
+# ================================================
+#
+# Files below have NO code owner. This lets Dependabot
+# PRs merge with only the approval from the dependabot-auto-merge
+# workflow, since github-actions[bot] is an app and cannot satisfy
+# "Require review from Code Owners".
+
+/package.json
+/package-lock.json
+/.github/workflows/
