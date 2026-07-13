@@ -81,8 +81,29 @@ if [ ! -d "$DEVCONTAINER_FOLDER/compose/$SELECTED_KEY" ]; then
     fi
 fi
 
-## Second fallback: if still no match, offer to substitute a Magento version
-## manually (vanilla only — mage-os errors out since there's no menu for it).
+## Second fallback (mage-os / mage-os-minimal only): MageOS follows semver,
+## so every release within a major shares a compatible docker stack. Fall
+## back to the newest available stack with the same major version.
+if [ ! -d "$DEVCONTAINER_FOLDER/compose/$SELECTED_KEY" ]; then
+    case "$SELECTED_KEY" in
+        mage-os/*|mage-os-minimal/*)
+            DISTRIBUTION="${SELECTED_KEY%/*}"
+            MAJOR="${SELECTED_KEY##*/}"
+            MAJOR="${MAJOR%%.*}"
+            SEMVER_VERSION=$(find "$DEVCONTAINER_FOLDER/compose/$DISTRIBUTION" \
+                -mindepth 1 -maxdepth 1 -type d -name "$MAJOR.*" -printf '%f\n' \
+                2>/dev/null | sort -V | tail -1)
+            if [ -n "$SEMVER_VERSION" ]; then
+                echo "No exact compose stack for $SELECTED_KEY — using semver-compatible $DISTRIBUTION/$SEMVER_VERSION"
+                SELECTED_KEY="$DISTRIBUTION/$SEMVER_VERSION"
+            fi
+            ;;
+    esac
+fi
+
+## Final fallback: if still no match, offer to substitute a Magento version
+## manually (vanilla only — mage-os errors out since no same-major stack
+## exists and there's no menu for it).
 if [ ! -d "$DEVCONTAINER_FOLDER/compose/$SELECTED_KEY" ]; then
     case "$SELECTED_KEY" in
         magento/*)
