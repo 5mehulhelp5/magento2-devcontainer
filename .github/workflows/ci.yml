@@ -172,3 +172,23 @@ jobs:
         if: always()
         run: |
           docker ps -a
+
+  # Single gate job for branch protection / Dependabot auto-merge.
+  # Matrix job names change as supported versions rotate, so require
+  # this check instead of the individual jobs. It must run on
+  # `always()` and fail explicitly: GitHub treats a skipped required
+  # check as passing, so letting a failure skip this job would let
+  # broken PRs merge.
+  ci-success:
+    name: CI Success
+    if: always()
+    needs:
+      - test-existing-project-magento
+      - test-existing-project-mage-os
+      - test-existing-project-mage-os-minimal
+      - test-fresh-install
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fail if any dependency did not succeed
+        if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled') || contains(needs.*.result, 'skipped')
+        run: exit 1
