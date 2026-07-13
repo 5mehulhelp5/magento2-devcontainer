@@ -39,10 +39,16 @@ if get_magento_version; then
         echo "" >&2
         echo "Consider re-running bin/init.sh to align the compose stack." >&2
         echo "" >&2
-        read -p "Continue anyway? [y/N]: " confirm </dev/tty
-        if [[ ! "$confirm" =~ ^[Yy]$ ]]; then
-            echo "Aborted." >&2
-            exit 1
+        # If we have a TTY, prompt the user to decide what to do.
+        if { : </dev/tty; } 2>/dev/null; then
+            read -p "Continue anyway? [y/N]: " confirm </dev/tty
+            if [[ ! "$confirm" =~ ^[Yy]$ ]]; then
+                echo "Aborted." >&2
+                exit 1
+            fi
+        else
+            ## They're missing a TTY, so we assume its ok.
+            echo "Non-interactive session — proceeding despite stack mismatch." >&2
         fi
         echo "" >&2
     fi

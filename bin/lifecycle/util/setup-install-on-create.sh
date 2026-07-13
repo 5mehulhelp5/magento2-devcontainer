@@ -23,10 +23,10 @@ if [ -z "$MAGENTO_ROOT" ] || [ ! -f "$MAGENTO_ROOT/vendor/autoload.php" ]; then
 fi
 
 echo "Running setup:install ..." >&2
-# Pass the resolved root so both hooks target the same tree. setup-install.sh
-# no-ops when app/etc/env.php already exists, so this is safe to re-enter.
-# </dev/null keeps it non-interactive: the stack-mismatch prompt reads from
-# /dev/tty, so with no tty it falls through rather than blocking the hook.
+# with no tty, setup-install.sh warns on a stack mismatch and proceeds 
+# instead of blocking the hook on its prompt. 
+# pipefail makes a setup-install.sh failure 
+set -o pipefail
 if MAGENTO_ROOT="$MAGENTO_ROOT" "$BIN_DIR/setup-install.sh" </dev/null | bash; then
     notice "setup:install completed."
 else
